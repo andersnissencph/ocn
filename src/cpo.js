@@ -42,15 +42,18 @@ app.get("/ocpi/2.2", async (req, res) => {
             status_code: 1000,
             data: {
                 version: "2.2",
-                endpoints: [{
-                    identifier: "commands",
-                    role: "RECEIVER",
-                    url: "http://max.charge.com/ocpi/cpo/2.2/commands"
-                }, {
-                    identifier: "locations",
-                    role: "SENDER",
-                    url: "http://localhost:3000/ocpi/cpo/2.2/locations"
-                }]
+                endpoints: [
+                    // {
+                    //     identifier: "commands",
+                    //     role: "RECEIVER",
+                    //     url: "http://localhost:3000/ocpi/cpo/2.2/commands"
+                    // }, 
+                    {
+                        identifier: "locations",
+                        role: "SENDER",
+                        url: "http://localhost:3000/ocpi/cpo/2.2/locations"
+                    }
+                ]
             },
             timestamp: new Date()
         })

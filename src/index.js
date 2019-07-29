@@ -63,8 +63,8 @@ cpo.start().then(async () => {
             token: cpo.TOKEN_B,
             url: "http://localhost:3000/ocpi/versions",
             roles: [{
-                party_id: "DE",
-                country_code: "CPO",
+                party_id: cpo.PARTY_ID,
+                country_code: cpo.COUNTRY_CODE,
                 role: "CPO",
                 business_details: {
                     name: "Test CPO"

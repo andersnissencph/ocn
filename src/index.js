@@ -48,7 +48,7 @@ cpo.start().then(async () => {
 
     const versionDetailBody = await versionDetailRes.json()
     cpo.setClientEndpoints(versionDetailBody.data.endpoints)
-    
+
     /**
      * Register to OCN Client using OCPI credentials module
      */
@@ -80,6 +80,10 @@ cpo.start().then(async () => {
      * Register to OCN Registry
      */
 
+    // Get OCN client info
+    const clientInfoRes = await fetch("http://localhost:8080/ocn/registry/client-info")
+    const clientInfoBody = await clientInfoRes.json()
+
     // this wallet will send the transaction (it doesn't need to be the same as the CPO which signs the data)
     const provider = new ethers.providers.JsonRpcProvider("http://localhost:8544")
     let wallet = ethers.Wallet.fromMnemonic("candy maple cake sugar pudding cream honey rich smooth crumble sweet treat")
@@ -89,8 +93,8 @@ cpo.start().then(async () => {
     const contract = new ethers.Contract("0x345cA3e014Aaf5dcA488057592ee47305D9B3e10", require("./registry.json"), wallet)
 
     // sign the transaction data with the CPO's wallet (in this case randomly created)
-    const sig = await signer.sign(utils.toHex(cpo.COUNTRY_CODE), utils.toHex(cpo.PARTY_ID), "http://localhost:8080", ethers.Wallet.createRandom())
-    const tx = await contract.register(...sig)
+    const data = await signer.sign(utils.toHex(cpo.COUNTRY_CODE), utils.toHex(cpo.PARTY_ID), clientInfoBody.url, clientInfoBody.address, ethers.Wallet.createRandom())
+    const tx = await contract.register(...data)
 
     await tx.wait()
 

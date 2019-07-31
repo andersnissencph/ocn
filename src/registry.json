@@ -79,12 +79,16 @@
         "type": "bytes3"
       },
       {
-        "name": "newIdentity",
+        "name": "newRoleAddress",
         "type": "address"
       },
       {
-        "name": "newBrokerURL",
+        "name": "newClientURL",
         "type": "string"
+      },
+      {
+        "name": "newClientAddress",
+        "type": "address"
       }
     ],
     "name": "adminOverwrite",
@@ -105,8 +109,12 @@
         "type": "bytes3"
       },
       {
-        "name": "brokerURL",
+        "name": "clientURL",
         "type": "string"
+      },
+      {
+        "name": "clientAddress",
+        "type": "address"
       },
       {
         "name": "v",
@@ -169,8 +177,12 @@
         "type": "bytes3"
       },
       {
-        "name": "brokerURL",
+        "name": "newClientURL",
         "type": "string"
+      },
+      {
+        "name": "newClientAddress",
+        "type": "address"
       },
       {
         "name": "v",
@@ -185,7 +197,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "updateBrokerURL",
+    "name": "updateClientInfo",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -203,11 +215,11 @@
         "type": "bytes3"
       }
     ],
-    "name": "addressOf",
+    "name": "clientURLOf",
     "outputs": [
       {
-        "name": "partyAddress",
-        "type": "address"
+        "name": "clientURL",
+        "type": "string"
       }
     ],
     "payable": false,
@@ -218,15 +230,19 @@
     "constant": true,
     "inputs": [
       {
-        "name": "partyAddress",
-        "type": "address"
+        "name": "countryCode",
+        "type": "bytes2"
+      },
+      {
+        "name": "partyID",
+        "type": "bytes3"
       }
     ],
-    "name": "brokerOf",
+    "name": "clientAddressOf",
     "outputs": [
       {
-        "name": "brokerURL",
-        "type": "string"
+        "name": "clientAddress",
+        "type": "address"
       }
     ],
     "payable": false,

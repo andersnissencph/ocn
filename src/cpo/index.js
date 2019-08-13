@@ -2,14 +2,21 @@ const express = require("express")
 const morgan = require("morgan")
 const bodyParser = require("body-parser")
 const uuid = require("uuid")
+const fs = require("fs")
 
 const COUNTRY_CODE = "DE"
 const PARTY_ID = "CPO"
 
 let clientEndpoints
 
-let TOKEN_B = uuid.v4()
+let TOKEN_B = "f3f1985e-8341-490d-ab06-17584175998c"
 let TOKEN_C
+
+try {
+    TOKEN_C = fs.readFileSync("./tokenC").toString()
+} catch (e) {
+
+}
 
 const app = express()
 app.use(bodyParser.json())
@@ -203,6 +210,9 @@ module.exports = {
     PARTY_ID,
     TOKEN_B,
     setClientEndpoints: (endpoints) => clientEndpoints = endpoints,
-    setTokenC: (token) => TOKEN_C = token,
+    setTokenC: (token) => {
+        TOKEN_C = token
+        fs.writeFileSync("./tokenC", token)
+    },
     start: async () => new Promise((resolve, _) => app.listen("3000", resolve))
 }

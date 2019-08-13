@@ -11,3 +11,9 @@ To start the servers:
 npm install
 npm start
 ```
+
+To register the MSP used in the tutorial (with country code "DE" and party ID "MSP"):
+
+```
+npm run register-msp
+```

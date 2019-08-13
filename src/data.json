@@ -1,0 +1,115 @@
+{
+    "versions": {
+        "versions": [{
+            "version": "2.2",
+            "url": "http://localhost:3000/ocpi/2.2"
+        }]
+    },
+    "version_detail": {
+        "version": "2.2",
+        "endpoints": [
+            {
+                "identifier": "locations",
+                "role": "SENDER",
+                "url": "http://localhost:3000/ocpi/cpo/2.2/locations"
+            },
+            {
+                "identifier": "tariffs",
+                "role": "SENDER",
+                "url": "http://localhost:3000/ocpi/cpo/2.2/tariffs"
+            }
+        ]
+    },
+    "locations": [
+        {
+            "country_code": "DE",
+            "party_id": "MSP",
+            "id": "LOC1",
+            "type": "ON_STREET",
+            "address": "somestreet 1",
+            "city": "Essen",
+            "country": "DEU",
+            "coordinates": {
+                "latitude": "52.232",
+                "longitude": "0.809"
+            },
+            "evses": [
+                {
+                    "uid": "1234",
+                    "status": "AVAILABLE",
+                    "connectors": [
+                        {
+                            "id": "1",
+                            "standard": "IEC_62196_T2",
+                            "format": "SOCKET",
+                            "power_type": "AC_3_PHASE",
+                            "max_voltage": 400,
+                            "max_amperage": 32,
+                            "tariff_ids": [
+                                "xxx-123"
+                            ],
+                            "last_updated": "2019-08-13T14:44:25.561Z"
+                        }
+                    ],
+                    "last_updated": "2019-08-13T14:44:25.561Z"
+                },
+                {
+                    "uid": "4567",
+                    "status": "RESERVED",
+                    "connectors": [
+                        {
+                            "id": "1",
+                            "standard": "IEC_62196_T2",
+                            "format": "SOCKET",
+                            "power_type": "AC_3_PHASE",
+                            "max_voltage": 400,
+                            "max_amperage": 32,
+                            "tariff_ids": [
+                                "xyz-456"
+                            ],
+                            "last_updated": "2019-08-13T14:44:25.561Z"
+                        }
+                    ],
+                    "last_updated": "2019-08-13T14:44:25.561Z"
+                }
+            ],
+            "last_updated": "2019-08-13T14:44:25.561Z"
+        }
+    ],
+    "tariffs": [
+        {
+            "country_code": "DE",
+            "party_id": "CPO",
+            "id": "xxx-123",
+            "currency": "EUR",
+            "type": "REGULAR",
+            "elements": [{
+                "price_components": [{
+                    "type": "FLAT",
+                    "price": 2.50,
+                    "step_size": 1
+                }]
+            }],
+            "last_updated": "2019-08-13T14:46:18.903Z"
+        },
+        {
+            "country_code": "DE",
+            "party_id": "CPO",
+            "id": "xyz-456",
+            "currency": "EUR",
+            "type": "REGULAR",
+            "elements": [{
+                "price_components": [{
+                    "type": "FLAT",
+                    "price": 1.20,
+                    "step_size": 1
+                }, {
+                    "type": "TIME",
+                    "price": 0.30,
+                    "step_size": 1000
+                }]
+            }],
+            "last_updated": "2019-08-13T14:46:18.903Z"
+        }
+    ]
+}

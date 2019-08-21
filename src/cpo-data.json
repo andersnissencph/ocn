@@ -1,29 +1,8 @@
 {
-    "versions": {
-        "versions": [{
-            "version": "2.2",
-            "url": "http://localhost:3000/ocpi/2.2"
-        }]
-    },
-    "version_detail": {
-        "version": "2.2",
-        "endpoints": [
-            {
-                "identifier": "locations",
-                "role": "SENDER",
-                "url": "http://localhost:3000/ocpi/cpo/2.2/locations"
-            },
-            {
-                "identifier": "tariffs",
-                "role": "SENDER",
-                "url": "http://localhost:3000/ocpi/cpo/2.2/tariffs"
-            }
-        ]
-    },
     "locations": [
         {
             "country_code": "DE",
-            "party_id": "MSP",
+            "party_id": "CPO",
             "id": "LOC1",
             "type": "ON_STREET",
             "address": "somestreet 1",

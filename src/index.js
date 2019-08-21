@@ -1,17 +1,27 @@
 const fetch = require("node-fetch")
 const ethers = require("ethers")
-const cpo = require("./cpo")
-const msp = require("./msp")
+const CpoBackend = require("./cpo-backend")
+const mspBackend = require("./msp-backend")
 const signer = require("./lib/signer")
 const utils = require("./lib/utils")
 
-cpo.start().then(async () => {
+const cpoInfo = [
+    {
+        partyID: "CPO",
+        countryCode: "DE",
+        backendPort: "3100",
+        client: "http://localhost:8080"
+    },
+    {
+        partyID: "CPX",
+        countryCode: "NL",
+        backendPort: "3101",
+        client: "http://localhost:8081"
+    }
+]
 
-    console.log(`CPO [${cpo.COUNTRY_CODE} ${cpo.PARTY_ID}] listening on 3000`)
 
-    /**
-     * Register to OCN Registry (if not already)
-     */
+async function main() {
 
     // setup wallet to send a transaction  (it doesn't need to be the same as the CPO which signs the data)
     const provider = new ethers.providers.JsonRpcProvider("http://localhost:8544")
@@ -21,126 +31,142 @@ cpo.start().then(async () => {
     // load the OCN Registry contract using its address and ABI
     const contract = new ethers.Contract("0x345cA3e014Aaf5dcA488057592ee47305D9B3e10", require("./registry.json"), wallet)
 
+
     /**
-     * Check registered status
+     * Setup each of the CPOs
      */
 
-    const clientURL = await contract.clientURLOf(utils.toHex(cpo.COUNTRY_CODE), utils.toHex(cpo.PARTY_ID))
-
-    if (clientURL === "") {
+    for (cpo of cpoInfo) {
 
         /**
-         * Register to OCN Registry
+         * Start the specific CPO backend
+         */
+        const cpoBackend = new CpoBackend(cpo)
+        await cpoBackend.start()
+
+        /**
+         * Register to OCN Registry (if not already)
          */
 
-        // Get OCN client info
-        const clientInfoRes = await fetch("http://localhost:8081/ocn/registry/client-info")
-        const clientInfoBody = await clientInfoRes.json()
+        // check registered status first
+        const clientURL = await contract.clientURLOf(utils.toHex(cpo.countryCode), utils.toHex(cpo.partyID))
 
-        // sign the transaction data with the CPO's wallet (in this case randomly created)
-        const data = await signer.sign(utils.toHex(cpo.COUNTRY_CODE), utils.toHex(cpo.PARTY_ID), clientInfoBody.url, clientInfoBody.address, ethers.Wallet.createRandom())
-        const tx = await contract.register(...data)
+        if (clientURL === "") {
 
-        await tx.wait()
+            /**
+             * Register to OCN Registry
+             */
 
-        console.log("CPO [DE CPO] written into OCN Registry with OCN client http://localhost:8081")
-    } else {
-        console.log("CPO [DE CPO] has already registered to OCN Registry. Skipping...")
-    }
+            // Get OCN client info
+            const clientInfoRes = await fetch(`${cpo.client}/ocn/registry/client-info`)
+            const clientInfoBody = await clientInfoRes.json()
 
-    /**
-     * Register CPO to OCN Client (if not already)
-     */
+            // sign the transaction data with the CPO's wallet (in this case randomly created)
+            const data = await signer.sign(utils.toHex(cpo.countryCode), utils.toHex(cpo.partyID), clientInfoBody.url, clientInfoBody.address, ethers.Wallet.createRandom())
+            const tx = await contract.register(...data)
 
-    const regCheckRes = await fetch("http://localhost:8081/admin/connection-status/DE/CPO", {
-        headers: {
-            "Authorization": "Token randomkey"
+            await tx.wait()
+
+            console.log(`CPO [${cpo.countryCode} ${cpo.partyID}] written into OCN Registry with OCN client ${cpo.client}`)
+        } else {
+            console.log(`CPO [${cpo.countryCode} ${cpo.partyID}] has already registered to OCN Registry. Skipping...`)
         }
-    })
-
-    const regCheckText = await regCheckRes.text()
-
-    if (regCheckRes.status !== 200 || regCheckText !== "CONNECTED") {
-
 
         /**
-         * Request TOKEN_A via OCN Client admin panel 
+         * Register CPO to OCN Client (if not already)
          */
 
-        const adminRes = await fetch("http://localhost:8081/admin/generate-registration-token", {
-            method: "POST",
+        const regCheckRes = await fetch(`${cpo.client}/admin/connection-status/${cpo.countryCode}/${cpo.partyID}`, {
             headers: {
-                "Authorization": "Token randomkey",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify([{country_code: cpo.COUNTRY_CODE, party_id: cpo.PARTY_ID}])
-        })
-
-        const adminBody = await adminRes.json()
-
-        /**
-         * Get list of OCPI versions supported by OCN Client
-         */
-
-        const versionRes = await fetch(adminBody.versions, {
-            headers: {
-                "Authorization": `Token ${adminBody.token}`
+                "Authorization": "Token randomkey"
             }
         })
 
-        const versionBody = await versionRes.json()
+        const regCheckText = await regCheckRes.text()
 
-        /**
-         * Get and store v2.2 endpoints of OCPI module interfaces supported by OCN Client
-         */
+        if (regCheckRes.status !== 200 || regCheckText !== "CONNECTED") {
 
-        const versionDetailRes = await fetch(versionBody.data.versions.find(v => v.version === "2.2").url, {
-            headers: {
-                "Authorization": `Token ${adminBody.token}`
-            }
-        })
 
-        const versionDetailBody = await versionDetailRes.json()
-        cpo.setClientEndpoints(versionDetailBody.data.endpoints)
+            /**
+             * Request TOKEN_A via OCN Client admin panel 
+             */
 
-        /**
-         * Register to OCN Client using OCPI credentials module
-         */
-
-        const regRes = await fetch("http://localhost:8081/ocpi/2.2/credentials", {
-            method: "POST",
-            headers: {
-                "Authorization": `Token ${adminBody.token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                token: cpo.TOKEN_B,
-                url: "http://localhost:3000/ocpi/versions",
-                roles: [{
-                    party_id: cpo.PARTY_ID,
-                    country_code: cpo.COUNTRY_CODE,
-                    role: "CPO",
-                    business_details: {
-                        name: "Test CPO"
-                    }
-                }]
+            const adminRes = await fetch(`${cpo.client}/admin/generate-registration-token`, {
+                method: "POST",
+                headers: {
+                    "Authorization": "Token randomkey",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify([{country_code: cpo.countryCode, party_id: cpo.partyID}])
             })
-        })
 
-        const regBody = await regRes.json()
-        cpo.setTokenC(regBody.data.token)
+            const adminBody = await adminRes.json()
 
-        console.log("CPO [DE CPO] completed OCPI connection with OCN client at http://localhost:8081")
-    } else {
-        console.log("CPO [DE CPO] has already connected to OCN client at http://localhost:8081. Skipping...")
+            /**
+             * Get list of OCPI versions supported by OCN Client
+             */
+
+            const versionRes = await fetch(adminBody.versions, {
+                headers: {
+                    "Authorization": `Token ${adminBody.token}`
+                }
+            })
+
+            const versionBody = await versionRes.json()
+
+            /**
+             * Get and store v2.2 endpoints of OCPI module interfaces supported by OCN Client
+             */
+
+            const versionDetailRes = await fetch(versionBody.data.versions.find(v => v.version === "2.2").url, {
+                headers: {
+                    "Authorization": `Token ${adminBody.token}`
+                }
+            })
+
+            const versionDetailBody = await versionDetailRes.json()
+            cpoBackend.clientEndpoints = versionDetailBody.data.endpoints
+
+            /**
+             * Register to OCN Client using OCPI credentials module
+             */
+
+            const regRes = await fetch(`${cpo.client}/ocpi/2.2/credentials`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Token ${adminBody.token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    token: cpoBackend.TOKEN_B,
+                    url: `http://localhost:${cpo.backendPort}/ocpi/versions`,
+                    roles: [{
+                        party_id: cpo.partyID,
+                        country_code: cpo.countryCode,
+                        role: "CPO",
+                        business_details: {
+                            name: "Test CPO"
+                        }
+                    }]
+                })
+            })
+
+            const regBody = await regRes.json()
+            cpoBackend.saveTokenC(regBody.data.token)
+
+            console.log(`CPO [${cpo.countryCode} ${cpo.partyID}] completed OCPI connection with OCN client at ${cpo.client}`)
+        } else {
+            console.log(`CPO [${cpo.countryCode} ${cpo.partyID}] has already connected to OCN client at ${cpo.client}. Skipping...`)
+        }
+
     }
 
     /**
      * Run the EMSP backend which will provide the version endpoints for the OCN Client during the credentials handshake/registration
      */
 
-    await msp.start()
-    console.log("MSP [DE MSP] listening on 3001")
+    await mspBackend.start()
+    console.log("MSP [DE MSP] listening on 3002")
 
     /**
      * Check MSP connection/registration status
@@ -157,5 +183,6 @@ cpo.start().then(async () => {
 
     console.log(`MSP [DE MSP] connection status: [${clientURLOfMSP !== "" ? "x" : " "}] OCN Registry [${mspRegCheckText === "CONNECTED" ? "x" : " "}] OCN Client`)
 
-})
+}
 
+main()

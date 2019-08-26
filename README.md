@@ -12,6 +12,12 @@ npm install
 npm start
 ```
 
+This will start an EMSP server which implements the OCPI `cdrs` (receiver) and `commands` (sender) module interfaces, as well as two 
+identical CPO servers which implement `locations` (sender), `tariffs` (sender) and `commands` (receiver) interfaces. On startup a CPO, with
+country code `DE` and party ID `CPO`, will attempt to connect to an OCN client on `http://localhost:8080` (if not already) and another, 
+with country code `NL` and party ID `CPX`, on `http://localhost:8081`.
+
+
 To register the MSP used in the tutorial (with country code "DE" and party ID "MSP"):
 
 ```

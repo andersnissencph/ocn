@@ -138,7 +138,7 @@ async function main() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    token: cpoBackend.TOKEN_B,
+                    token: CpoBackend.TOKEN_B,
                     url: `http://localhost:${cpo.backendPort}/ocpi/versions`,
                     roles: [{
                         party_id: cpo.partyID,

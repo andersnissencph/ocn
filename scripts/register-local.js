@@ -18,7 +18,7 @@ fetch("http://localhost:8080/ocn/registry/client-info").then(async clientInfoRes
     const mpsWallet = ethers.Wallet.createRandom()
 
     // sign the transaction data with the CPO's wallet (in this case randomly created)
-    const data = await signer.sign(utils.toHex("DE"), utils.toHex("MSP"), clientInfoBody.url, clientInfoBody.address, mpsWallet)
+    const data = await signer.sign(utils.toHex("DE"), utils.toHex("CPO"), clientInfoBody.url, clientInfoBody.address, mpsWallet)
     const tx = await contract.register(...data)
     
     await tx.wait()
